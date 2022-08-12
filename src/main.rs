@@ -3,25 +3,21 @@ use serde_json::Value;
 use reqwest::{Response};
 use std::env;
 use steamgriddb_api::{QueryType::Icon};
+use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let rpc_client_id = env::args().nth(1).expect("Requires at least one argument");
     let api_key = env::args().nth(2).expect("Requires at least one argument");
     let steam_id = env::args().nth(3).expect("Requires at least one argument");
     let griddb_key = env::args().nth(4).unwrap();
 
     // Create the client
-    let mut drpc = discord_presence::Client::new(rpc_client_id.parse::<u64>().unwrap());
-
-    // Register event handlers with the corresponding methods
-    drpc.on_ready(|_ctx| {
-        println!("Ready!");
-    });
+    let mut drpc = DiscordIpcClient::new(rpc_client_id.as_str()).expect("Failed to create Discord RPC client");
 
     // Start up the client connection, so that we can actually send and receive stuff
-    drpc.start();
-
+    let mut connected: bool = false;
+    let mut start_time: i64 = 0;
     loop {
         let message = get_steam_presence(&api_key, &steam_id).await.unwrap();
         let state_message = message[1..message.len() - 1].to_string();
@@ -33,34 +29,35 @@ async fn main() {
 
         // Set the activity
         if state_message != "ul" {
+            if connected != true {
+                drpc.connect().expect("Failed to connect to Discord RPC client");
+                start_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as i64;
+            }
+            connected = true;
             if img != "".to_string() {
-                if let Err(why) = drpc.set_activity(|a| {
-                    a.state(state_message)
-                    .timestamps(|ts|
-                        ts.start(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as u64)
+                drpc.set_activity(
+                    activity::Activity::new()
+                    .state(&state_message.as_str())
+                    .timestamps(activity::Timestamps::new()
+                        .start(start_time)
                     )
-                    .assets(|ass| {
-                        ass.large_image(img)
+                    .assets(
+                        activity::Assets::new()
+                            .large_image(img.as_str())
                             .large_text("https://github.com/Radiicall/steam-presence-on-discord") 
-                    })
-                }) {
-                    println!("Failed to set presence: {}", why);
-                }
+                    )
+                ).expect("Failed to set activity");
             } else {
-                if let Err(why) = drpc.set_activity(|a| {
-                    a.state(state_message)
-                }) {
-                    println!("Failed to set presence: {}", why);
-                }
+                drpc.set_activity(
+                    activity::Activity::new()
+                    .state(&state_message)
+                ).expect("Failed to set activity");
             }
-        } else {
-            if let Err(why) = drpc.set_activity(|a| {
-                a.state("")
-            }) {
-                println!("Failed to set presence: {}", why);
-            }
+        } else if connected == true {
+            drpc.close().expect("Failed to close Discord RPC client");
+            let _ = connected == false;
         }
-    std::thread::sleep(std::time::Duration::from_secs(20));
+    std::thread::sleep(std::time::Duration::from_secs(18));
     }
 }
 
