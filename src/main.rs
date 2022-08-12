@@ -1,16 +1,17 @@
 extern crate serde_json;
 use serde_json::Value;
 use reqwest::{Response};
-use std::env;
+use dotenv;
 use steamgriddb_api::{QueryType::Icon};
 use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let rpc_client_id = env::args().nth(1).expect("Requires at least one argument");
-    let api_key = env::args().nth(2).expect("Requires at least one argument");
-    let steam_id = env::args().nth(3).expect("Requires at least one argument");
-    let griddb_key = env::args().nth(4).unwrap();
+    dotenv::dotenv().ok();
+    let rpc_client_id = dotenv::var("DISCORD_APPLICATION_ID").expect("Requires at least one argument");
+    let api_key = dotenv::var("STEAM_API_KEY").expect("Requires at least one argument");
+    let steam_id = dotenv::var("STEAM_USER_ID").expect("Requires at least one argument");
+    let griddb_key = dotenv::var("STEAM_GRID_API_KEY").unwrap();
 
     // Create the client
     let mut drpc = DiscordIpcClient::new(rpc_client_id.as_str()).expect("Failed to create Discord RPC client");

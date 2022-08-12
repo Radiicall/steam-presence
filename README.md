@@ -25,38 +25,24 @@ so this script is a way of circumventing these issues by instead having this run
 
 also yes this is very dumb you're right lmao
 
-## Setup
-create a file named `config.json` in the same directory as this file and fill it in accordingly.
+# Setup
+create a file named `.env` in the top directory and fill it.
  
-```json
-{
-    "STEAM_API_KEY": "STEAM_API_KEY",
-    "USER_ID": "USER_ID",
-
-    "DISCORD_APPLICATION_ID": "DISCORD_APPLICATION_ID",
-
-    "COVER_ART": {
-        "ENABLED": false,
-        "STEAM_GRID_API_KEY": "STEAM_GRID_API_KEY"
-    },
-
-    "CUSTOM_GAME_OVERWRITE": {
-        "ENABLED": false,
-        "NAME": "NAME"
-    },
-
-    "CUSTOM_STATUS_STATE": {
-        "ENABLED": false,
-        "STATUS": "https://github.com/JustTemmie/steam-presence-on-discord"
-    }
-}
 ```
-# Steam web API
+STEAM_API_KEY=
+
+STEAM_USER_ID=
+
+STEAM_GRID_API_KEY=
+
+DISCORD_APPLICATION_ID=
+```
+## Steam web API
 the `KEY` in this case is regarding to the Steam web API.
 
 this you can obtain by registering here https://steamcommunity.com/dev/apikey while logged in
 
-# User ID
+## Steam User ID
 the `USERID` is the steam user id of the user you want to track.
 
 **NOTE** this is not the same as the display URL of the user.
@@ -67,7 +53,7 @@ and then taking the ID from that url
 
 ![ExampleImage](readmeimages/steamDB.png)
 
-# Discord Application ID
+## Discord Application ID
 the `DISCORD_APPLICATION_ID` is the discord application ID of the app you want to use.
 
 please generate one here https://discordapp.com/developers/applications/ or use mine "869994714093465680"
@@ -76,35 +62,12 @@ the only thing you need to fill out on their site is the application name itself
 
 for example i named mine "a game on steam" as shown in the screenshot above.
 
-# Cover Art
+## Cover Art (SteamGridDB)
 and then we have the `COVER_ART` section.
 
-this will download an icon from steamGridDB and use it as the cover art for the discord presence.
-
-change the ENABLED field to true and fill in the api key enable this.
+this will use an icon from steamGridDB as the cover art for the discord presence.
 
 **NOTE** this is optional and the script functions perfectly without it, you'll just be missing the cover art.
+To disable this just remove the `STEAM_GRID_API_KEY=` line.
 
 you can get your API key here https://www.steamgriddb.com/profile/preferences/api
-
-additionally, this caches the url to a file named icons.txt, so if you don't like an icon it found you can replace the url in that file for whatever game.
-
-# Custom Game Overwrite
-if you want to display a game that isn't on steam, you can use the `CUSTOM_GAME_OVERWRITE` section.
-
-set enabled to true and fill in the name of the game you want to display.
-
-this will still try to grab an icon from steamGridDB, but if it can't find one you can try giving it one yourself.
-
-# Custom Status State
-if you want to display a custom status alongside the game, you can use the `CUSTOM_STATUS_STATE` section.
-
-set enabled to true and fill in the status you want to display.
-# Python
-python3.8 or higher is required.
-
-run `pip install -r requirements.txt` to install all the dependencies
-
-then run `python3 main.py`
-
-(these are linux commands, if you're on windows you might need to change them into something, idk search it up)
