@@ -54,23 +54,32 @@ def get_steam_presence(STEAM_API_KEY, USER_ID):
 
 # looks into the discord api and steals the app IDs from it
 def get_game_id(gameName):
+    # Get api applications
     r = requests.get("https://discordapp.com/api/v8/applications/detectable")
     
+    # Convert to json
     r = r.json()
     
+    # For each application
     for i in r:
         gameNames = []
+        # Append the names to a list
         gameNames.append(i["name"].lower())
         
+        # If the game has aliases
         if "aliases" in i:
+            # For each alias
             aliases = i["aliases"]
             for alias in aliases:
+                # Append the alias to the list
                 gameNames.append(alias.lower())
 
+        # If the game name is in the list
         if gameName.lower() in gameNames:
             print(f"found the discord game ID for {gameName}")
             return i["id"]
 
+    # If the game is not in the list
     print(f"could not find the discord game ID for {gameName}, defaulting to well, the default game ID")
     return DEFAULT_APP_ID
 
