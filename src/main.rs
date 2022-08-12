@@ -9,10 +9,15 @@ use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Load environment variables
     dotenv::dotenv().ok();
-    let rpc_client_id = dotenv::var("DISCORD_APPLICATION_ID").expect("Please fill in the required fields in .env");
-    let api_key = dotenv::var("STEAM_API_KEY").expect("Please fill in the required fields in .env");
-    let steam_id = dotenv::var("STEAM_USER_ID").expect("Please fill in the required fields in .env");
+    let rpc_client_id = dotenv::var("DISCORD_APPLICATION_ID").unwrap();
+    let api_key = dotenv::var("STEAM_API_KEY").unwrap();
+    let steam_id = dotenv::var("STEAM_USER_ID").unwrap();
     let griddb_key = dotenv::var("STEAM_GRID_API_KEY").unwrap();
+
+    if rpc_client_id == "" || api_key == "" || steam_id == "" || griddb_key == "" {
+        println!("Please fill in the .env file");
+        std::process::exit(1);
+    }
 
     // Create the client
     let mut drpc = DiscordIpcClient::new(rpc_client_id.as_str()).expect("Failed to create Discord RPC client");
