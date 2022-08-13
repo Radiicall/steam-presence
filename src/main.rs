@@ -4,25 +4,66 @@ use reqwest::{Response};
 use dotenv;
 use steamgriddb_api::{QueryType::Icon};
 use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
+use std::io::{Write, BufReader, BufRead};
+
+const PATH: &str = "./.env";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Load environment variables
     dotenv::dotenv().ok();
-    let rpc_client_id = dotenv::var("DISCORD_APPLICATION_ID").unwrap();
-    let api_key = dotenv::var("STEAM_API_KEY").unwrap();
-    let steam_id = dotenv::var("STEAM_USER_ID").unwrap();
-    let griddb_key = dotenv::var("STEAM_GRID_API_KEY").unwrap();
+    let rpc_client_id = dotenv::var("DISCORD_APPLICATION_ID").unwrap_or_else(|_| "".to_string());
+    let api_key = dotenv::var("STEAM_API_KEY").unwrap_or_else(|_| "".to_string());
+    let steam_id = dotenv::var("STEAM_USER_ID").unwrap_or_else(|_| "".to_string());
+    let griddb_key = dotenv::var("STEAM_GRID_API_KEY").unwrap_or_else(|_| "".to_string());
 
     if rpc_client_id == "" || api_key == "" || steam_id == "" {
-        println!("Please fill in the .env file");
-        std::process::exit(1);
+        // Create input
+        let mut input = String::new();
+        // Ask for discord id
+        println!("Please enter your Discord Application ID:");
+        // Read line
+        std::io::stdin().read_line(&mut input).unwrap();
+        // Add line to req
+        let mut req = format!("DISCORD_APPLICATION_ID={}\n", input.trim());
+        // Reset input to empty
+        input = "".to_string();
+        // Ask for steam api key
+        println!("Please enter your Steam API Key :");
+        // Read line
+        std::io::stdin().read_line(&mut input).unwrap();
+        // Add line to req
+        req = format!("{}STEAM_API_KEY={}\n", req, input.trim());
+        // Reset input to empty
+        input = "".to_string();
+        // Ask for steam user id
+        println!("Please enter your Steam User ID :");
+        // Read line
+        std::io::stdin().read_line(&mut input).unwrap();
+        // Add line to req
+        req = format!("{}STEAM_USER_ID={}\n", req, input.trim());
+        // Reset input to empty
+        input = "".to_string();
+        // Ask for steam grid api key (optional)
+        println!("Please enter your Steam Grid API Key (Keep empty if you dont want pictures):");
+        // Read line
+        std::io::stdin().read_line(&mut input).unwrap();
+        // Check if line is empty
+        if input.trim() != "" {
+            // Add line to req
+            req = format!("{}STEAM_GRID_API_KEY={}\n", req, input.trim());
+        }
+        // Create and write to file
+        write(req.as_str()).expect("Failed to write to .env file");
+        println!("Please restart the program");
+        // Exit program
+        std::process::exit(0);
     }
 
     // Create variables early
     let mut connected: bool = false;
     let mut start_time: i64 = 0;
-    let mut drpc = DiscordIpcClient::new(rpc_client_id.as_str()).expect("Failed to create Discord RPC client");
+    let mut drpc = DiscordIpcClient::new(rpc_client_id.as_str()).expect("Failed to create Discord RPC client, discord is down or the Client ID is invalid.");
     // Start loop
     loop {
         // Get the current open game in steam
@@ -43,9 +84,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("Game: {}", state_message);
                 println!("Image: {}", img);
                 // Create the client
-                drpc = DiscordIpcClient::new(appid.as_str()).expect("Failed to create Discord RPC client");
+                drpc = DiscordIpcClient::new(appid.as_str()).expect("Failed to create Discord RPC client, discord is down or the Client ID is invalid.");
                 // Start up the client connection, so that we can actually send and receive stuff
-                drpc.connect().expect("Failed to connect to Discord RPC client");
+                drpc.connect().expect("Failed to connect to Discord RPC client, discord is down or the Client ID is invalid.");
                 println!("Connected to Discord RPC client");
                 // Set the starting time for the timestamp
                 start_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as i64;
@@ -99,7 +140,7 @@ async fn get_steam_presence(api_key: &String, steam_id: &String) -> Result<Strin
     let body = res.text().await?;
 
     // Convert to json
-    let json: Value = serde_json::from_str(&body).unwrap();
+    let json: Value = serde_json::from_str(&body).expect("Failed to convert to json, is the steam api key and user id correct?");
 
     // Get the response from the json
     let response: &&Value = &json.get("response").expect("Couldn't find that");
@@ -155,3 +196,23 @@ async fn steamgriddb(griddb_key: &String, query: &str) -> Result<String, Box<dyn
     }
     Ok(image)
  }
+
+ fn write(input: &str) -> Result<(), std::io::Error> {
+    // Try to create the file
+    let mut output = std::fs::File::create(PATH)?;
+    // Try to write input to file
+    write!(output, "{}", input)?;
+    // Try to set input to file
+    let input = std::fs::File::open(PATH)?;
+    // Read input to string
+    let buffered = BufReader::new(input);
+
+    // Try to print the file contents
+    for words in buffered.lines() {
+        println!("{}", words?);
+    }
+
+    // Return Ok
+    Ok(())
+}
+
