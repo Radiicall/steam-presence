@@ -14,17 +14,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let steam_id = dotenv::var("STEAM_USER_ID").unwrap();
     let griddb_key = dotenv::var("STEAM_GRID_API_KEY").unwrap();
 
-    if rpc_client_id == "" || api_key == "" || steam_id == "" || griddb_key == "" {
+    if rpc_client_id == "" || api_key == "" || steam_id == "" {
         println!("Please fill in the .env file");
         std::process::exit(1);
     }
 
-    // Create the client
-    let mut drpc = DiscordIpcClient::new(rpc_client_id.as_str()).expect("Failed to create Discord RPC client");
-
     // Create variables early
     let mut connected: bool = false;
     let mut start_time: i64 = 0;
+    let mut drpc = DiscordIpcClient::new(rpc_client_id.as_str()).expect("Failed to create Discord RPC client");
     // Start loop
     loop {
         // Get the current open game in steam
@@ -37,16 +35,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             img = steamgriddb(&griddb_key, &state_message).await.unwrap();
         }
 
-        
         if state_message != "ul" {
             if connected != true {
+                let idbrok = get_discord_app(&state_message, rpc_client_id.to_lowercase().to_owned()).await.unwrap();
+                let appid = idbrok[1..idbrok.len() - 1].to_string();
+                println!("App ID: {}", appid);
+                println!("Game: {}", state_message);
+                println!("Image: {}", img);
+                // Create the client
+                drpc = DiscordIpcClient::new(appid.as_str()).expect("Failed to create Discord RPC client");
                 // Start up the client connection, so that we can actually send and receive stuff
                 drpc.connect().expect("Failed to connect to Discord RPC client");
+                println!("Connected to Discord RPC client");
                 // Set the starting time for the timestamp
                 start_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as i64;
+                // Set connected to true so that we don't try to connect again
+                connected = true;
             }
-            // Set connected to true so that we don't try to connect again
-            connected = true;
             // Set the activity
             if img != "".to_string() {
                 drpc.set_activity(
@@ -74,8 +79,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         } else if connected == true {
             // Disconnect from the client
             drpc.close().expect("Failed to close Discord RPC client");
+            std::thread::sleep(std::time::Duration::from_secs(8));
             // Set connected to false so that we dont try to disconnect again
-            let _ = connected == false;
+            connected = false;
+            println!("Disconnected from Discord RPC client");
         }
     // Sleep for 18 seconds
     std::thread::sleep(std::time::Duration::from_secs(18));
@@ -95,7 +102,7 @@ async fn get_steam_presence(api_key: &String, steam_id: &String) -> Result<Strin
     let json: Value = serde_json::from_str(&body).unwrap();
 
     // Get the response from the json
-    let response: &&Value   = &json.get("response").expect("Couldn't find that");
+    let response: &&Value = &json.get("response").expect("Couldn't find that");
     // Get players from response
     let players: &Value = response.get("players").expect("Couldn't find that");
     // Get the first player from the players
@@ -103,6 +110,31 @@ async fn get_steam_presence(api_key: &String, steam_id: &String) -> Result<Strin
 
     // Return the game title
     Ok(game_title.to_string())
+}
+
+async fn get_discord_app(query: &str, rpc_client_id: String) -> Result<String, reqwest::Error> {
+    // Create the request
+    let url = "https://discordapp.com/api/v8/applications/detectable";
+    // Get response
+    let res: Response = reqwest::get(url).await?;
+    
+    // Get the body of the response
+    let body = res.text().await?;
+    
+    // Convert to json
+    let json: Vec<Value> = serde_json::from_str(&body).unwrap();
+
+    // Get the response from the json
+    let mut id: String = format!("+{}+", rpc_client_id);
+    for i in 0..json.len() {
+        let mut response: Vec<&str> = Vec::new();
+        response.push(&json[i].get("name").unwrap().as_str().unwrap());
+        if response.contains(&query) {
+            id = json[i].get("id").unwrap().to_string();
+            break
+        }
+    }
+    Ok(id)
 }
 
 async fn steamgriddb(griddb_key: &String, query: &str) -> Result<String, Box<dyn std::error::Error>> {
