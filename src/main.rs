@@ -6,7 +6,7 @@ use steamgriddb_api::{QueryType::Icon};
 use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
 use std::io::{Write, BufReader, BufRead};
 
-const PATH: &str = "./.env";
+const ENV: &str = "./.env";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -67,21 +67,34 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut connected: bool = false;
     let mut start_time: i64 = 0;
     let mut drpc = DiscordIpcClient::new(rpc_client_id.as_str()).expect("Failed to create Discord RPC client, discord is down or the Client ID is invalid.");
+    let mut img: String = "".to_string();
+    let mut curr_state_message: String = "".to_string();
     // Start loop
     loop {
         // Get the current open game in steam
         let message = get_steam_presence(&api_key, &steam_id).await.unwrap();
         let state_message = message[1..message.len() - 1].to_string();
 
-        // Get image from steamgriddb if griddb_key is present
-        let mut img: String = "".to_string();
-        if griddb_key != "".to_string() && state_message != "ul" {
-            img = steamgriddb(&griddb_key, &state_message).await.unwrap();
-        }
-
         if state_message != "ul" {
             if connected != true {
-                let idbrok = get_discord_app(&state_message, rpc_client_id.to_lowercase().to_owned()).await.unwrap();
+                // Grab image from griddb if it is enabled
+                if griddb_key != "".to_string() && state_message != "ul" {
+                    // Get image from griddb
+                    img = steamgriddb(&griddb_key, &state_message).await.unwrap();
+                }
+                // Check if icons.txt file is empty
+                if read_icons().unwrap_or_else(|_| "".to_string()) != "" && state_message != "ul" {
+                    // Read icons.txt to icons
+                    let icons = read_icons().unwrap();
+                    // Find icon in icons
+                    let icon = icons.split("\n").find(|icon| icon.contains(&state_message)).unwrap_or_else(|| "");
+                    // Check if icon is empty
+                    if icon != "" {
+                        // Set img to icon
+                        img = icon.split("=").nth(1).unwrap().to_string();
+                    }
+                }
+                let idbrok = get_discord_app(&state_message, rpc_client_id.to_owned()).await.unwrap();
                 let appid = idbrok[1..idbrok.len() - 1].to_string();
                 println!("//////////////////////////////////////////////////////////////////\nApp ID: {}\nGame: {}\nImage: {}", appid, state_message, img);
                 // Create the client
@@ -91,8 +104,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("//////////////////////////////////////////////////////////////////\nConnected to Discord RPC client");
                 // Set the starting time for the timestamp
                 start_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as i64;
+                // Set current state message
+                curr_state_message = state_message.to_string();
                 // Set connected to true so that we don't try to connect again
                 connected = true;
+            } else if state_message != curr_state_message {
+                 // Disconnect from the client
+                drpc.close().expect("Failed to close Discord RPC client");
+                std::thread::sleep(std::time::Duration::from_secs(8));
+                // Set connected to false so that we dont try to disconnect again
+                connected = false;
+                println!("Disconnected from Discord RPC client");
+                std::thread::sleep(std::time::Duration::from_secs(18));
+                continue;
             }
             // Set the activity
             if img != "".to_string() {
@@ -203,18 +227,40 @@ async fn steamgriddb(griddb_key: &String, query: &str) -> Result<String, Box<dyn
         // Get the images of the game
         let images = client.get_images_for_id(first_game.id, &Icon(None)).await?;
         // Get the first image
-        image = images[0].url.to_string()
+        if images.len() > 0 {
+            image = images[0].url.to_string();
+            if !image.ends_with(".png") {
+                let resolutions = vec![
+                    512,
+                    256,
+                    128,
+                    64,
+                    32,
+                    16
+                ];
+                for res in resolutions {
+                    let url = format!("{}/32/{}x{}.png", image[0..image.len() - 4].to_string(), res, res);
+
+                    let r: Response = reqwest::get(url.as_str()).await?;
+
+                    if r.status() == 200 {
+                        image = url;
+                        break;
+                    }
+                }
+            }
+        }
     }
     Ok(image)
  }
 
  fn write(input: &str) -> Result<(), std::io::Error> {
     // Try to create the file
-    let mut output = std::fs::File::create(PATH)?;
+    let mut output = std::fs::File::create(ENV)?;
     // Try to write input to file
     write!(output, "{}", input)?;
     // Try to set input to file
-    let input = std::fs::File::open(PATH)?;
+    let input = std::fs::File::open(ENV)?;
     // Read input to string
     let buffered = BufReader::new(input);
 
@@ -225,5 +271,11 @@ async fn steamgriddb(griddb_key: &String, query: &str) -> Result<String, Box<dyn
 
     // Return Ok
     Ok(())
+}
+
+fn read_icons() -> Result<String, std::io::Error>{
+    let icons = std::env::current_exe()?.parent().unwrap().join("icons.txt");
+    // Open file and read to string
+    return Ok(std::fs::read_to_string(icons)?);
 }
 
