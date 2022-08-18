@@ -26,6 +26,10 @@ so this script is a way of circumventing these issues by instead having this run
 also yes this is very dumb you're right lmao
 
 # Setup
+Run the executable to get an interactive way to create the config
+
+**or**
+
 create a file named `.env` in the top directory and fill it.
  
 ```
