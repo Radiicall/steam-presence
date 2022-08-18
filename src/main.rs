@@ -147,7 +147,16 @@ async fn get_steam_presence(api_key: &String, steam_id: &String) -> Result<Strin
     // Get players from response
     let players: &Value = response.get("players").expect("Couldn't find that");
     // Get the first player from the players
-    let game_title: &Value = &players[0]["gameextrainfo"];
+    let mut game_title: &Value = &players[0]["gameextrainfo"];
+    // Check if gameextrainfo is null, if so then check if there are more ID's in the response
+    if game_title == &Value::Null && players.as_array().unwrap().len() > 1 {
+        for i in 1..players.as_array().unwrap().len() {
+            game_title = &players[i]["gameextrainfo"];
+            if game_title != &Value::Null {
+                break;
+            }
+        }
+    }
 
     // Return the game title
     Ok(game_title.to_string())
