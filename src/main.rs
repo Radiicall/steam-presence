@@ -29,15 +29,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Reset input to empty
         input = "".to_string();
         // Ask for steam api key
-        println!("Please enter your Steam API Key :");
+        println!("Please enter your Steam API Key:");
         // Read line
         std::io::stdin().read_line(&mut input).unwrap();
         // Add line to req
         req = format!("{}STEAM_API_KEY={}\n", req, input.trim());
         // Reset input to empty
         input = "".to_string();
-        // Ask for steam user id
-        println!("Please enter your Steam User ID :");
+        // Ask for steam user id(s)
+        println!("Please enter your Steam User ID(s) (Seperated by commas '12345,67890'):");
         // Read line
         std::io::stdin().read_line(&mut input).unwrap();
         // Add line to req
@@ -45,7 +45,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Reset input to empty
         input = "".to_string();
         // Ask for steam grid api key (optional)
-        println!("Please enter your Steam Grid API Key (Keep empty if you dont want pictures):");
+        println!("Please enter your Steam Grid API Key (Keep empty if you dont want/need pictures):");
         // Read line
         std::io::stdin().read_line(&mut input).unwrap();
         // Check if line is empty
@@ -60,8 +60,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::process::exit(0);
     }
 
-    // Steam ID's
-    println!("//////////////////////////////////////////////////////////////////\nSteam IDs:\n{}", steam_id.replace(",", "\n"));
+    // Steam ID(s)
+    println!("//////////////////////////////////////////////////////////////////\nSteam ID(s):\n{}", steam_id.replace(",", "\n"));
 
     // Create variables early
     let mut connected: bool = false;
@@ -164,6 +164,7 @@ async fn get_steam_presence(api_key: &String, steam_id: &String) -> Result<Strin
 }
 
 async fn get_discord_app(query: &str, rpc_client_id: String) -> Result<String, reqwest::Error> {
+    
     // Create the request
     let url = "https://discordapp.com/api/v8/applications/detectable";
     // Get response
