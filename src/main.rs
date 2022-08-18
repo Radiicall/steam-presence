@@ -16,7 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = dotenv::var("STEAM_API_KEY").unwrap_or_else(|_| "".to_string());
     let steam_id = dotenv::var("STEAM_USER_ID").unwrap_or_else(|_| "".to_string());
     let griddb_key = dotenv::var("STEAM_GRID_API_KEY").unwrap_or_else(|_| "".to_string());
-
+    println!("//////////////////////////////////////////////////////////////////\nSteam Presence on Discord\nhttps://github.com/Radiicall/steam-presence-on-discord");
     if rpc_client_id == "" || api_key == "" || steam_id == "" {
         // Create input
         let mut input = String::new();
@@ -60,6 +60,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::process::exit(0);
     }
 
+    // Steam ID's
+    println!("//////////////////////////////////////////////////////////////////\nSteam IDs:\n{}", steam_id.replace(",", "\n"));
+
     // Create variables early
     let mut connected: bool = false;
     let mut start_time: i64 = 0;
@@ -80,14 +83,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             if connected != true {
                 let idbrok = get_discord_app(&state_message, rpc_client_id.to_lowercase().to_owned()).await.unwrap();
                 let appid = idbrok[1..idbrok.len() - 1].to_string();
-                println!("App ID: {}", appid);
-                println!("Game: {}", state_message);
-                println!("Image: {}", img);
+                println!("//////////////////////////////////////////////////////////////////\nApp ID: {}\nGame: {}\nImage: {}", appid, state_message, img);
                 // Create the client
                 drpc = DiscordIpcClient::new(appid.as_str()).expect("Failed to create Discord RPC client, discord is down or the Client ID is invalid.");
                 // Start up the client connection, so that we can actually send and receive stuff
                 drpc.connect().expect("Failed to connect to Discord RPC client, discord is down or the Client ID is invalid.");
-                println!("Connected to Discord RPC client");
+                println!("//////////////////////////////////////////////////////////////////\nConnected to Discord RPC client");
                 // Set the starting time for the timestamp
                 start_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as i64;
                 // Set connected to true so that we don't try to connect again
