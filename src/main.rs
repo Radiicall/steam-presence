@@ -188,7 +188,6 @@ async fn get_steam_presence(api_key: &String, steam_id: &String) -> Result<Strin
 }
 
 async fn get_discord_app(query: &str, rpc_client_id: String) -> Result<String, reqwest::Error> {
-    
     // Create the request
     let url = "https://discordapp.com/api/v8/applications/detectable";
     // Get response
