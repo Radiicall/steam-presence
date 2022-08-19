@@ -5,8 +5,9 @@
   - [Discord Application ID](#discord-application-id)
   - [Steam Web API](#steam-web-api)
   - [Steam User ID](#steam-user-id)
-  - [Cover Art (SteamGridDB)](#cover-art-steamgriddb)
-  - [Cover Art (Custom)](#cover-art-custom)
+  - [Cover Art](#cover-art)
+    - [SteamGridDB](#steamgriddb)
+    - [Custom](#custom)
 
 
 # Heads Up
@@ -89,18 +90,19 @@ and then taking the ID from that url
 ![ExampleImage](readmeimages/steamDB.png)
 
 
-## Cover Art (SteamGridDB)
+## Cover Art
 And then we have the `COVER_ART` section.
 
-This will use an icon from steamGridDB as the cover art for the discord presence.
+Having any cover art at all is optional. You can completely ignore this section without any errors.
 
-**NOTE** This is optional and the script functions perfectly without it, you'll just be missing the cover art.
-To disable this just remove the `STEAM_GRID_API_KEY=` line.
+**NOTE** If both SteamGridDB and Custom are used it will choose the Custom icon over SteamGridDB
+
+### SteamGridDB
+This will use an icon from steamGridDB as the cover art for the discord presence.
 
 You can get your API key [here](https://www.steamgriddb.com/profile/preferences/api)
 
-
-## Cover Art (Custom)
+### Custom
 Create a file named icons.txt in the same folder as the executable
 
 Add your game name to it and a URL to the image you want to use
