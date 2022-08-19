@@ -38,7 +38,7 @@ See, no.
 
 Discord has severe limitations when it comes to Linux as most games running through a compatability layer (like 90% of them) are displayed as pr-wrap or something similar.
 
-In addition to this, there's the Steam Deck, a handheld linux games "console".
+In addition to this, there's the Steam Deck, a handheld linux game "console".
 
 Having discord constantly run in the background is a terrible idea considering how that's gonna lose you at least half an hour of battery life, in addition to the previous issues with Linux.
 
