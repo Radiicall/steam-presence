@@ -29,18 +29,18 @@ Playing "BTD6" with the script running
 
 ![ExampleImage2](readmeimages/example2.png)
 
-Playing "Everything" with the script running (more niece game so Discord doesn't have it saved)
+Playing "Everything" with the script running (more niche game so Discord doesn't have it saved)
 
 ### Why??
 Well, why did i make this? Discord already detects the games you're playing so isn't this just pointless??
 
 See, no.
 
-Discord has severe limitations when it comes to Linux as most games running thru a compatability layer (like 90% of them) are displayed as pr-wrap or something similar.
+Discord has severe limitations when it comes to Linux as most games running through a compatability layer (like 90% of them) are displayed as pr-wrap or something similar.
 
-In addition to this, there's the Steam Deck, a handheld linux game "console".
+In addition to this, there's the Steam Deck, a handheld linux games "console".
 
-Having discord constantly run in the background is a terrible idea considering how that's gonna lose you at least half an hour of battery life, in addition to the previous issues with linux.
+Having discord constantly run in the background is a terrible idea considering how that's gonna lose you at least half an hour of battery life, in addition to the previous issues with Linux.
 
 So this script is a way of circumventing these issues by instead having this run on something like a server 24/7.
 
