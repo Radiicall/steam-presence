@@ -15,6 +15,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let rpc_client_id = dotenv::var("DISCORD_APPLICATION_ID").unwrap_or_else(|_| "".to_string());
     let api_key = dotenv::var("STEAM_API_KEY").unwrap_or_else(|_| "".to_string());
     let steam_id = dotenv::var("STEAM_USER_ID").unwrap_or_else(|_| "".to_string());
+    let retrycount = dotenv::var("RETRY_COUNT").unwrap_or_else(|_| "3".to_string()).parse::<u64>().unwrap();
     let griddb_key = dotenv::var("STEAM_GRID_API_KEY").unwrap_or_else(|_| "".to_string());
     println!("//////////////////////////////////////////////////////////////////\nSteam Presence on Discord\nhttps://github.com/Radiicall/steam-presence-on-discord");
     if rpc_client_id == "" || api_key == "" || steam_id == "" {
@@ -42,6 +43,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::io::stdin().read_line(&mut input).unwrap();
         // Add line to req
         req = format!("{}STEAM_USER_ID={}\n", req, input.trim());
+        // Reset input to empty
+        input = "".to_string();
+        // Ask for steam user id(s)
+        println!("Please enter how many times to retry steam API connection (Default: 3):");
+        // Read line
+        std::io::stdin().read_line(&mut input).unwrap();
+        // Add line to req
+        req = format!("{}RETRY_COUNT={}\n", req, input.trim());
         // Reset input to empty
         input = "".to_string();
         // Ask for steam grid api key (optional)
@@ -72,7 +81,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Start loop
     loop {
         // Get the current open game in steam
-        let message = get_steam_presence(&api_key, &steam_id).await.unwrap();
+        let message = get_steam_presence(&api_key, &steam_id, retrycount).await.unwrap();
         let state_message = message[1..message.len() - 1].to_string();
 
         if state_message != "ul" {
@@ -82,10 +91,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     // Get image from griddb
                     img = steamgriddb(&griddb_key, &state_message).await.unwrap();
                 }
-                // Check if icons.txt file is empty
-                if read_icons().unwrap_or_else(|_| "".to_string()) != "" && state_message != "ul" {
-                    // Read icons.txt to icons
-                    let icons = read_icons().unwrap();
+                // Read icons.txt
+                let icons = read_icons().unwrap_or_else(|_| "".to_string());
+                if icons != "" && state_message != "ul" {
                     // Find icon in icons
                     let icon = icons.split("\n").find(|icon| icon.contains(&state_message)).unwrap_or_else(|| "");
                     // Check if icon is empty
@@ -155,15 +163,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-async fn get_steam_presence(api_key: &String, steam_id: &String) -> Result<String, reqwest::Error> {
-    // Create the request
-    let url = format!("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key={}&format=json&steamids={}", api_key, steam_id);
-    // Get response
-    let res: Response = reqwest::get(url).await?;
+async fn get_steam_presence(api_key: &String, steam_id: &String, retrycount: u64) -> Result<String, reqwest::Error> {
+    // Convert to json
+    let mut body: String = "".to_string();
+    for i in 1..retrycount {
+        if i > 1 {
+            println!("Failed to connect to steam, retrying...");
+            std::thread::sleep(std::time::Duration::from_secs(10));
+        }
 
-    // Get the body of the response
-    let body = res.text().await?;
+        // Create the request
+        let url = format!("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key={}&format=json&steamids={}", api_key, steam_id);
+        // Get response
+        let res: Response = reqwest::get(url).await?;
 
+        if res.status() != 200{
+            continue;
+        }
+
+        // Get the body of the response
+        body = res.text().await?;
+        break;
+    }
     // Convert to json
     let json: Value = serde_json::from_str(&body).expect("Failed to convert to json, is the steam api key and user id correct?");
 
