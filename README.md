@@ -16,7 +16,7 @@ They do the same thing in different ways and have different features.
     - [Custom](#custom)
 
 <p align='center'>
-  <img src="readmeimages/banner2.png" alt="Image showing all the bot commands.">
+  <img src="readmeimages/banner.png" alt="Steam Presence on Discord logo">
 </p>
 
 # Steam Presence on Discord
