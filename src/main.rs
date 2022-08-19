@@ -15,14 +15,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let rpc_client_id = dotenv::var("DISCORD_APPLICATION_ID").unwrap_or_else(|_| "".to_string());
     let api_key = dotenv::var("STEAM_API_KEY").unwrap_or_else(|_| "".to_string());
     let steam_id = dotenv::var("STEAM_USER_ID").unwrap_or_else(|_| "".to_string());
-    let retrycount = dotenv::var("RETRY_COUNT").unwrap_or_else(|_| "3".to_string()).parse::<u64>().unwrap();
+    let retrycount = dotenv::var("RETRY_COUNT").unwrap_or_else(|_| "3".to_string()).parse::<u64>().expect("RETRY_COUNT must be a number");
     let griddb_key = dotenv::var("STEAM_GRID_API_KEY").unwrap_or_else(|_| "".to_string());
     println!("//////////////////////////////////////////////////////////////////\nSteam Presence on Discord\nhttps://github.com/Radiicall/steam-presence-on-discord");
     if rpc_client_id == "" || api_key == "" || steam_id == "" {
         // Create input
         let mut input = String::new();
         // Ask for discord id
-        println!("Please enter your Discord Application ID:");
+        println!("//////////////////////////////////////////////////////////////////\nPlease enter your Discord Application ID:");
         // Read line
         std::io::stdin().read_line(&mut input).unwrap();
         // Add line to req
@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Reset input to empty
         input = "".to_string();
         // Ask for steam api key
-        println!("Please enter your Steam API Key:");
+        println!("\nPlease enter your Steam API Key:");
         // Read line
         std::io::stdin().read_line(&mut input).unwrap();
         // Add line to req
@@ -38,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Reset input to empty
         input = "".to_string();
         // Ask for steam user id(s)
-        println!("Please enter your Steam User ID(s) (Seperated by commas '12345,67890'):");
+        println!("\nPlease enter your Steam User ID(s) (Seperated by commas '12345,67890'):");
         // Read line
         std::io::stdin().read_line(&mut input).unwrap();
         // Add line to req
@@ -46,25 +46,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Reset input to empty
         input = "".to_string();
         // Ask for steam user id(s)
-        println!("Please enter how many times to retry steam API connection (Default: 3):");
+        println!("\nPlease enter how many times to retry steam API connection (Default: 3):");
         // Read line
         std::io::stdin().read_line(&mut input).unwrap();
         // Add line to req
-        req = format!("{}RETRY_COUNT={}\n", req, input.trim());
+        if input.trim() != "" {
+            req = format!("{}RETRY_COUNT={}\n", req, input.trim());
+        }
         // Reset input to empty
         input = "".to_string();
         // Ask for steam grid api key (optional)
-        println!("Please enter your Steam Grid API Key (Keep empty if you dont want/need pictures):");
+        println!("\nPlease enter your Steam Grid API Key (Keep empty if you dont want/need pictures):");
         // Read line
         std::io::stdin().read_line(&mut input).unwrap();
-        // Check if line is empty
+        // Add line to req
         if input.trim() != "" {
-            // Add line to req
             req = format!("{}STEAM_GRID_API_KEY={}\n", req, input.trim());
         }
         // Create and write to file
         write(req.as_str()).expect("Failed to write to .env file");
-        println!("Please restart the program");
+        println!("//////////////////////////////////////////////////////////////////\nPlease restart the program");
         // Exit program
         std::process::exit(0);
     }
@@ -298,4 +299,3 @@ fn read_icons() -> Result<String, std::io::Error>{
     // Open file and read to string
     return Ok(std::fs::read_to_string(icons)?);
 }
-
