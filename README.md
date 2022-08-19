@@ -1,3 +1,9 @@
+# Heads Up
+This code and Temmie's code are fundamentally different.
+
+They do the same thing in different ways and have different features.
+
+
 ### Table of Contents
 - [Steam Presence on Discord](#steam-presence-on-discord)
   - [Why](#why)
@@ -8,11 +14,6 @@
   - [Cover Art](#cover-art)
     - [SteamGridDB](#steamgriddb)
     - [Custom](#custom)
-
-
-# Heads Up
-This code and Temmie's code are fundamentally different.
-They do the same thing in different ways and have different features.
 
 
 # Steam Presence on Discord
