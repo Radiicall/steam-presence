@@ -122,4 +122,5 @@ Trailmakers=https://s1.qwant.com/thumbr/0x0/0/e/042f3e3c97b657ad274223498150c95d
 
 ## Systemd
 To use the systemd service run the `install-service.sh` file without root after filling your .env file
+
 **NOTE:** If you can't run the file do `chmod +x install-service.sh`
