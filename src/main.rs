@@ -33,6 +33,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut drpc = DiscordIpcClient::new(rpc_client_id.as_str()).expect("Failed to create Discord RPC client, discord is down or the Client ID is invalid.");
     let mut img: String = "".to_string();
     let mut curr_state_message: String = "".to_string();
+    let mut appid: String = "".to_string();
     // Start loop
     loop {
         // Get the current open game in steam
@@ -58,7 +59,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 }
                 let idbrok = get_discord_app(&state_message, rpc_client_id.to_owned()).await.unwrap();
-                let appid = idbrok[1..idbrok.len() - 1].to_string();
+                appid = idbrok[1..idbrok.len() - 1].to_string();
                 println!("//////////////////////////////////////////////////////////////////\nApp ID: {}\nGame: {}\nImage: {}", appid, state_message, img);
                 // Create the client
                 drpc = DiscordIpcClient::new(appid.as_str()).expect("Failed to create Discord RPC client, discord is down or the Client ID is invalid.");
@@ -83,27 +84,40 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             // Set the activity
             if img != "".to_string() {
-                drpc.set_activity(
-                    activity::Activity::new()
-                    // Set the "state" or message
-                    .state(&state_message.as_str())
-                    // Add a timestamp
-                    .timestamps(activity::Timestamps::new()
-                        .start(start_time)
-                    )
-                    // Add image and a link to the github repo
-                    .assets(
-                        activity::Assets::new()
-                            .large_image(img.as_str())
-                            .large_text("https://github.com/Radiicall/steam-presence-on-discord") 
-                    )
-                ).expect("Failed to set activity");
+                if appid == rpc_client_id {
+                    drpc.set_activity(
+                        activity::Activity::new()
+                        // Set the "state" or message
+                        .state(&state_message)
+                        // Add a timestamp
+                        .timestamps(activity::Timestamps::new()
+                            .start(start_time)
+                        )
+                        // Add image and a link to the github repo
+                        .assets(
+                            activity::Assets::new()
+                                .large_image(img.as_str())
+                                .large_text("https://github.com/Radiicall/steam-presence-on-discord") 
+                        )
+                    ).expect("Failed to set activity");    
+                } else {
+                    drpc.set_activity(activity::Activity::new().timestamps(activity::Timestamps::new().start(start_time)).assets(activity::Assets::new().large_image(img.as_str()).large_text("https://github.com/Radiicall/steam-presence-on-discord"))).expect("Failed to set activity");
+                }
+
             } else {
-                drpc.set_activity(
-                    activity::Activity::new()
-                    // Set the "state" or message
-                    .state(&state_message)
-                ).expect("Failed to set activity");
+                if appid == rpc_client_id {
+                    drpc.set_activity(
+                        activity::Activity::new()
+                        // Set the "state" or message
+                        .state(&state_message)
+                        // Add a timestamp
+                        .timestamps(activity::Timestamps::new()
+                            .start(start_time)
+                        )
+                    ).expect("Failed to set activity");
+                } else {
+                    drpc.set_activity(activity::Activity::new().timestamps(activity::Timestamps::new().start(start_time))).expect("Failed to set activity");
+                }
             }
         } else if connected == true {
             // Disconnect from the client
