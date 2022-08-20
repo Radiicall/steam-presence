@@ -14,7 +14,7 @@ They do the same thing in different ways and have different features.
   - [Cover Art](#cover-art)
     - [SteamGridDB](#steamgriddb)
     - [Custom](#custom)
-  - [systemd](#systemd)
+  - [Systemd](#systemd)
 
 <p align='center'>
   <img src="readmeimages/banner.png" alt="Steam Presence on Discord logo">
@@ -120,5 +120,5 @@ Trailmakers=https://s1.qwant.com/thumbr/0x0/0/e/042f3e3c97b657ad274223498150c95d
 ```
 
 
-## systemd
+## Systemd
 To use the systemd service run the `install-service.sh` file without root after filling your .env file
