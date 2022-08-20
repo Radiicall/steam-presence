@@ -14,6 +14,7 @@ They do the same thing in different ways and have different features.
   - [Cover Art](#cover-art)
     - [SteamGridDB](#steamgriddb)
     - [Custom](#custom)
+  - [systemd](#systemd)
 
 <p align='center'>
   <img src="readmeimages/banner.png" alt="Steam Presence on Discord logo">
@@ -78,12 +79,12 @@ For example Temmie's is called "a game on steam" as shown in the screenshot abov
 
 
 ## Steam Web API
-The `KEY` in this case is regarding to the Steam web API.
+The `STEAM_API_KEY` in this case is regarding to the Steam web API.
 
 This you can obtain by registering [here](https://steamcommunity.com/dev/apikey) while logged in
 
 ## Steam User ID
-The `USERID` is the steam user id of the user you want to track.
+The `STEAM_USER_ID` is the steam user id of the user you want to track.
 
 **NOTE** This is not the same as the display URL of the user.
 
@@ -95,14 +96,14 @@ and then taking the ID from that url
 
 
 ## Cover Art
-And then we have the `COVER_ART` section.
+And then we have the Cover Art section.
 
 Having any cover art at all is optional. You can completely ignore this section without any errors.
 
 **NOTE** If both SteamGridDB and Custom are used it will choose the Custom icon over SteamGridDB
 
 ### SteamGridDB
-This will use an icon from steamGridDB as the cover art for the discord presence.
+This will use an icon from SteamGridDB as the cover art for the discord presence.
 
 You can get your API key [here](https://www.steamgriddb.com/profile/preferences/api)
 
@@ -119,3 +120,5 @@ Trailmakers=https://s1.qwant.com/thumbr/0x0/0/e/042f3e3c97b657ad274223498150c95d
 ```
 
 
+## systemd
+To use the systemd service run the `install-service.sh` file without root after filling your .env file

@@ -1,6 +1,6 @@
 [Unit]
-Description=Steam Presence for slow computers
-Documentation=https://radical.fun
+Description=Steam Presence Service
+Documentation=https://github.com/Radiicall/steam-presence-on-discord
 After=network.target
 
 [Service]
