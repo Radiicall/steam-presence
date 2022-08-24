@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if whoami = "root"
+if [ `whoami` == "root" ];
 then
     echo "This script cannot be ran as root"
     exit 1
@@ -18,6 +18,7 @@ else
     exit 1
 fi
 
+systemctl --user stop steam-presence.service
 
 echo "Installing systemd service"
 cp steam-presence.service.tmp ~/.config/systemd/user/steam-presence.service
