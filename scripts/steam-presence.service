@@ -6,7 +6,7 @@ After=network.target
 [Service]
 WorkingDirectory=/home/CHANGEME/.config/steam-presence/
 Type=simple
-ExecStart=/home/CHANGME/.config/steam-presence/steam-presence-on-discord
+ExecStart=/home/CHANGEME/.config/steam-presence/steam-presence-on-discord
 Restart=on-failure
 
 [Install]
