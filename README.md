@@ -1,7 +1,6 @@
 # Heads Up
-This code and Temmie's code are fundamentally different.
+#### Use <a href="https://github.com/JustTemmie/steam-presence">this</a> version.
 
-They do the same thing in different ways and have different features.
 
 
 ### Table of Contents
