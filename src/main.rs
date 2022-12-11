@@ -64,7 +64,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // Create the client
                 drpc = DiscordIpcClient::new(appid.as_str()).expect("Failed to create Discord RPC client, discord is down or the Client ID is invalid.");
                 // Start up the client connection, so that we can actually send and receive stuff
-                drpc.connect().expect("Failed to connect to Discord RPC client, discord is down or the Client ID is invalid.");
+                loop {
+                    match drpc.connect() {
+                        Ok(result) => result,
+                        Err(_) => {
+                            println!("Failed to connect, retrying in 10 seconds"); 
+                            std::thread::sleep(std::time::Duration::from_secs(10)); 
+                            continue
+                        },
+                    };
+                    break;
+                }
                 println!("//////////////////////////////////////////////////////////////////\nConnected to Discord RPC client");
                 // Set the starting time for the timestamp
                 start_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as i64;
