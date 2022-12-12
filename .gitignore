@@ -4,6 +4,8 @@ config.json
 releases/
 Cargo.lock
 .DS_Store
+icons.txt
+games.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

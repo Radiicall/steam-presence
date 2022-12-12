@@ -5,6 +5,7 @@ use dotenv;
 use steamgriddb_api::{QueryType::Icon};
 use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
 use std::io::{Write, BufReader, BufRead};
+use sysinfo::{System, SystemExt};
 
 const ENV: &str = "./.env";
 
@@ -17,6 +18,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let steam_id = dotenv::var("STEAM_USER_ID").unwrap_or_else(|_| "".to_string());
     let retrycount = dotenv::var("RETRY_COUNT").unwrap_or_else(|_| "3".to_string()).parse::<u64>().expect("RETRY_COUNT must be a number");
     let griddb_key = dotenv::var("STEAM_GRID_API_KEY").unwrap_or_else(|_| "".to_string());
+    let process = dotenv::var("OTHER_GAMES").unwrap_or_else(|_| "".to_string());
     println!("//////////////////////////////////////////////////////////////////\nSteam Presence on Discord\nhttps://github.com/Radiicall/steam-presence-on-discord");
     if rpc_client_id == "" || api_key == "" || steam_id == "" {
         // Run setup
@@ -37,7 +39,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Start loop
     loop {
         // Get the current open game in steam
-        let message = get_steam_presence(&api_key, &steam_id, retrycount).await.unwrap();
+        let message = get_presence(&process, &api_key, &steam_id, retrycount).await.unwrap();
         let state_message = message[1..message.len() - 1].to_string();
 
         if state_message != "ul" {
@@ -142,7 +144,38 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-async fn get_steam_presence(api_key: &String, steam_id: &String, retrycount: u64) -> Result<String, reqwest::Error> {
+fn processes_by_name(processes: String) -> String {
+    let s = System::new_all();
+    let mut process = "".to_string();
+    let proc = processes.split("");
+    for i in proc {
+        for _ in s.processes_by_exact_name(i) {
+            process = "'".to_string() + i + "'";
+            break
+        }
+    }
+    let mut name = match read_processes() {
+        Ok(res) => res,
+        Err(_) => "".to_string(),
+    };
+    if name.contains(&process) {
+        name = name.split("\n").find(|p| p.contains(&process)).unwrap_or_else(|| "").to_string();
+        if name != "".to_string() {
+            process = "'".to_string() + name.split("=").nth(1).unwrap() + "'";
+        }
+    }
+    if process != "".to_string() {
+        return process
+    } else {
+        return "".to_string()
+    }
+}
+
+async fn get_presence(process: &String, api_key: &String, steam_id: &String, retrycount: u64) -> Result<String, reqwest::Error> {
+    let game_title = processes_by_name(process.to_owned());
+    if game_title != "".to_string() {
+        return Ok(game_title)
+    }
     // Convert to json
     let mut body: String = "".to_string();
     for i in 1..retrycount {
@@ -300,6 +333,13 @@ async fn steamgriddb(griddb_key: &String, query: &str) -> Result<String, Box<dyn
     }
     // Create and write to file
     write(req.as_str()).expect("Failed to write to .env file");
+    println!(r#"
+If you want to add non-steam games, add the executable name to the .env like this 'OTHER_GAMES=r5apex.exe,minecraft.exe'.
+If you want custom text, make a games.txt file next to the steam-presence-on-discord executable like this
+
+r5apex.exe=Apex Legends
+minecraft.exe=Minecraft
+"#);
     println!("//////////////////////////////////////////////////////////////////\nPlease restart the program");
 
  }
@@ -327,4 +367,10 @@ fn read_icons() -> Result<String, std::io::Error>{
     let icons = std::env::current_exe()?.parent().unwrap().join("icons.txt");
     // Open file and read to string
     return Ok(std::fs::read_to_string(icons)?);
+}
+
+fn read_processes() -> Result<String, std::io::Error>{
+    let processes = std::env::current_exe()?.parent().unwrap().join("games.txt");
+    // Open file and read to string
+    return Ok(std::fs::read_to_string(processes)?);
 }
