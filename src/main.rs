@@ -41,7 +41,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Get the current open game in steam
         let message = get_presence(&process, &api_key, &steam_id, retrycount).await.unwrap();
         let state_message = message[1..message.len() - 1].to_string();
-
         if state_message != "ul" {
             if connected != true {
                 // Grab image from griddb if it is enabled
@@ -147,10 +146,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 fn processes_by_name(processes: String) -> String {
     let s = System::new_all();
     let mut process = "".to_string();
-    let proc = processes.split("");
+    let proc = processes.split(",");
     for i in proc {
-        for _ in s.processes_by_exact_name(i) {
-            process = "'".to_string() + i + "'";
+        for _ in s.processes_by_name(i) {
+            process = i.to_string();
             break
         }
     }
@@ -161,10 +160,11 @@ fn processes_by_name(processes: String) -> String {
     if name.contains(&process) {
         name = name.split("\n").find(|p| p.contains(&process)).unwrap_or_else(|| "").to_string();
         if name != "".to_string() {
-            process = "'".to_string() + name.split("=").nth(1).unwrap() + "'";
+            process = name.split("=").nth(1).unwrap().to_string();
         }
     }
-    if process != "".to_string() {
+    process =  "'".to_string() + process.as_str() + "'";
+    if process != "''".to_string() {
         return process
     } else {
         return "".to_string()
