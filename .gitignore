@@ -3,6 +3,7 @@ config.json
 .vscode
 releases/
 Cargo.lock
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
