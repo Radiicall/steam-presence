@@ -88,6 +88,24 @@ and then taking the ID from that url
 
 ![ExampleImage](readmeimages/steamDB.png)
 
+## Non Steam Games
+For non-steam games I have a pretty lackluster implementation, basically put the process name in the .env with `OTHER_GAMES`
+
+Example:
+```
+OTHER_GAMES=osu!.exe,minecraft.exe,r5apex.exe
+```
+
+and to make it show the actual game name instead of just "Playing osu!.exe" you need to make a new file next to the executable called `games.txt`.
+
+In this file you need to write out the executable name and what you want it to show as
+
+Example:
+```
+osu!.exe=osu!
+minecraft.exe=Minecraft
+r5apex.exe=Apex Legends
+```
 
 ## Cover Art
 And then we have the Cover Art section.
