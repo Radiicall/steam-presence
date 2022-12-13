@@ -11,10 +11,12 @@
   - [Discord Application ID](#discord-application-id)
   - [Steam Web API](#steam-web-api)
   - [Steam User ID](#steam-user-id)
+  - [Non Steam Games](#non-steam-games)
   - [Cover Art](#cover-art)
     - [SteamGridDB](#steamgriddb)
     - [Custom](#custom)
   - [Systemd](#systemd)
+  - [Compiling](.github/docs/COMPILE.md)
 
 A simple script to check a Steam user's current game, and display that as a Discord rich presence.
 
