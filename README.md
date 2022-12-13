@@ -1,3 +1,9 @@
+<p align='center'>
+  <img src="readmeimages/banner.png" alt="Steam Presence on Discord logo">
+</p>
+
+# Steam Presence on Discord
+
 ### Table of Contents
 - [Steam Presence on Discord](#steam-presence-on-discord)
   - [Why](#why)
@@ -9,12 +15,6 @@
     - [SteamGridDB](#steamgriddb)
     - [Custom](#custom)
   - [Systemd](#systemd)
-
-<p align='center'>
-  <img src="readmeimages/banner.png" alt="Steam Presence on Discord logo">
-</p>
-
-# Steam Presence on Discord
 
 A simple script to check a Steam user's current game, and display that as a Discord rich presence.
 
