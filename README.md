@@ -16,7 +16,7 @@
     - [SteamGridDB](#steamgriddb)
     - [Custom](#custom)
   - [Systemd](#systemd)
-  - [Compiling](.github/docs/COMPILE.md)
+- [Compiling](.github/docs/COMPILE.md)
 
 A simple script to check a Steam user's current game, and display that as a Discord rich presence.
 
