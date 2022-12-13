@@ -10,4 +10,4 @@ git clone https://github.com/Radiicall/steam-presence-rust
 cd steam-presence-rust
 cargo build --release
 ```
-The executable will be located here `target/release/steam-presence-on-discord`.
+The executable will be located here `target/release/steam-presence-on-discord[.exe]`.
