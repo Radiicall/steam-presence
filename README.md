@@ -1,8 +1,3 @@
-# Heads Up
-#### Use <a href="https://github.com/JustTemmie/steam-presence">this</a> version.
-
-
-
 ### Table of Contents
 - [Steam Presence on Discord](#steam-presence-on-discord)
   - [Why](#why)
@@ -36,7 +31,7 @@ Well, why did i make this? Discord already detects the games you're playing so i
 
 See, no.
 
-Discord has severe limitations when it comes to Linux as most games running through a compatability layer (like 90% of them) are displayed as pr-wrap or something similar.
+Discord has severe limitations when it comes to Linux as most games running through a compatability layer (like 90% of them) are displayed as pr-wrap or something similar. Also the flatpak version of Discord has no support for detecting games at all while still having Rich Presence, so this is the only way to show "playing" status.
 
 In addition to this, there's the Steam Deck, a handheld linux game "console".
 
