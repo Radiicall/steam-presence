@@ -49,7 +49,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     img = steamgriddb(&griddb_key, &state_message).await.unwrap();
                 }
                 // Read icons.txt
-                let icons = read_icons().unwrap_or_else(|_| "".to_string());
+                let icons = match read_icons() {
+                    Ok(res) => res,
+                    Err(err) => {
+                        println!("Cannot read icons.txt: {}\n^^^ Most of the time this can be ignored", err);
+                        "".to_string()
+                    },
+                };
                 if icons != "" && state_message != "ul" {
                     // Find icon in icons
                     let icon = icons.split("\n").find(|icon| icon.contains(&state_message)).unwrap_or_else(|| "");
@@ -148,19 +154,24 @@ fn processes_by_name(processes: String) -> String {
     let mut process = "".to_string();
     let proc = processes.split(",");
     for i in proc {
-        for _ in s.processes_by_name(i) {
+        for _ in s.processes_by_exact_name(i) {
             process = i.to_string();
             break
         }
     }
     let mut name = match read_processes() {
         Ok(res) => res,
-        Err(_) => "".to_string(),
+        Err(err) => {
+            println!("Cannot read games.txt: {}", err);
+            "".to_string()
+        },
     };
-    if name.contains(&process) {
-        name = name.split("\n").find(|p| p.contains(&process)).unwrap_or_else(|| "").to_string();
-        if name != "".to_string() {
-            process = name.split("=").nth(1).unwrap().to_string();
+    if process != "".to_string() {
+        if name.contains(&process) {
+            name = name.split("\n").find(|p| p.contains(&process)).unwrap_or_else(|| "").to_string();
+            if name != "".to_string() {
+                process = name.split("=").nth(1).unwrap().to_string();
+            }
         }
     }
     process =  "'".to_string() + process.as_str() + "'";
