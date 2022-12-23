@@ -39,7 +39,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Start loop
     loop {
         // Get the current open game in steam
-        let message = get_presence(&process, &api_key, &steam_id, retrycount).await.unwrap();
+        let message = match get_presence(&process, &api_key, &steam_id, retrycount).await {
+            Ok(res) => res,
+            Err(_) => "ul".to_string()
+        };
         let state_message = message[1..message.len() - 1].to_string();
         if state_message != "ul" {
             if connected != true {
@@ -92,11 +95,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             } else if state_message != curr_state_message {
                  // Disconnect from the client
                 drpc.close().expect("Failed to close Discord RPC client");
-                std::thread::sleep(std::time::Duration::from_secs(8));
                 // Set connected to false so that we dont try to disconnect again
                 connected = false;
                 println!("Disconnected from Discord RPC client");
-                std::thread::sleep(std::time::Duration::from_secs(18));
+                std::thread::sleep(std::time::Duration::from_secs(2));
                 continue;
             }
             // Set the activity
@@ -139,46 +141,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         } else if connected == true {
             // Disconnect from the client
             drpc.close().expect("Failed to close Discord RPC client");
-            std::thread::sleep(std::time::Duration::from_secs(8));
             // Set connected to false so that we dont try to disconnect again
             connected = false;
             println!("Disconnected from Discord RPC client");
         }
     // Sleep for 18 seconds
-    std::thread::sleep(std::time::Duration::from_secs(18));
-    }
-}
-
-fn processes_by_name(processes: String) -> String {
-    let s = System::new_all();
-    let mut process = "".to_string();
-    let proc = processes.split(",");
-    for i in proc {
-        for _ in s.processes_by_exact_name(i) {
-            process = i.to_string();
-            break
-        }
-    }
-    let mut name = match read_processes() {
-        Ok(res) => res,
-        Err(err) => {
-            println!("Cannot read games.txt: {}", err);
-            "".to_string()
-        },
-    };
-    if process != "".to_string() {
-        if name.contains(&process) {
-            name = name.split("\n").find(|p| p.contains(&process)).unwrap_or_else(|| "").to_string();
-            if name != "".to_string() {
-                process = name.split("=").nth(1).unwrap().to_string();
-            }
-        }
-    }
-    process =  "'".to_string() + process.as_str() + "'";
-    if process != "''".to_string() {
-        return process
-    } else {
-        return "".to_string()
+    std::thread::sleep(std::time::Duration::from_secs(2));
     }
 }
 
@@ -229,6 +197,39 @@ async fn get_presence(process: &String, api_key: &String, steam_id: &String, ret
 
     // Return the game title
     Ok(game_title.to_string())
+}
+
+fn processes_by_name(processes: String) -> String {
+    let s = System::new_all();
+    let mut process = "".to_string();
+    let proc = processes.split(",");
+    for i in proc {
+        for _ in s.processes_by_exact_name(i) {
+            process = i.to_string();
+            break
+        }
+    }
+    let mut name = match read_processes() {
+        Ok(res) => res,
+        Err(err) => {
+            println!("Cannot read games.txt: {}", err);
+            "".to_string()
+        },
+    };
+    if process != "".to_string() {
+        if name.contains(&process) {
+            name = name.split("\n").find(|p| p.contains(&process)).unwrap_or_else(|| "").to_string();
+            if name != "".to_string() {
+                process = name.split("=").nth(1).unwrap().to_string();
+            }
+        }
+    }
+    process =  "'".to_string() + process.as_str() + "'";
+    if process != "''".to_string() {
+        return process
+    } else {
+        return "".to_string()
+    }
 }
 
 async fn get_discord_app(query: &str, rpc_client_id: String) -> Result<String, reqwest::Error> {
