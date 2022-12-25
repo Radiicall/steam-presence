@@ -106,23 +106,33 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if appid == rpc_client_id {
                     drpc.set_activity(
                         activity::Activity::new()
-                        // Set the "state" or message
-                        .state(&state_message)
-                        // Add a timestamp
-                        .timestamps(activity::Timestamps::new()
-                            .start(start_time)
-                        )
-                        // Add image and a link to the github repo
-                        .assets(
-                            activity::Assets::new()
-                                .large_image(img.as_str())
-                                .large_text("https://github.com/Radiicall/steam-presence-on-discord") 
-                        )
+                            // Set the "state" or message
+                            .state(&state_message)
+                            // Add a timestamp
+                            .timestamps(activity::Timestamps::new()
+                                .start(start_time)
+                            )
+                            // Add image and a link to the github repo
+                            .assets(
+                                activity::Assets::new()
+                                    .large_image(img.as_str())
+                                    .large_text("https://github.com/Radiicall/steam-presence-on-discord") 
+                            )
                     ).expect("Failed to set activity");    
                 } else {
-                    drpc.set_activity(activity::Activity::new().timestamps(activity::Timestamps::new().start(start_time)).assets(activity::Assets::new().large_image(img.as_str()).large_text("https://github.com/Radiicall/steam-presence-on-discord"))).expect("Failed to set activity");
+                    drpc.set_activity(
+                        activity::Activity::new()
+                            .timestamps(
+                                activity::Timestamps::new()
+                                .start(start_time)
+                            )
+                            .assets(
+                                activity::Assets::new()
+                                .large_image(img.as_str())
+                                .large_text("https://github.com/Radiicall/steam-presence-on-discord")
+                            )
+                    ).expect("Failed to set activity");
                 }
-
             } else {
                 if appid == rpc_client_id {
                     drpc.set_activity(
@@ -132,6 +142,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         // Add a timestamp
                         .timestamps(activity::Timestamps::new()
                             .start(start_time)
+                        )
+                        .assets(
+                            activity::Assets::new()
+                            .large_image("https://github.com/Radiicall/steam-presence-rust/raw/main/hi.png")
+                            .large_text("https://github.com/Radiicall/steam-presence-on-discord")
                         )
                     ).expect("Failed to set activity");
                 } else {
