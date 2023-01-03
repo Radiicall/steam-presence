@@ -102,57 +102,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 continue;
             }
             // Set the activity
-            if img != "".to_string() {
-                if appid == rpc_client_id {
-                    drpc.set_activity(
-                        activity::Activity::new()
-                            // Set the "state" or message
-                            .state(&state_message)
-                            // Add a timestamp
-                            .timestamps(activity::Timestamps::new()
-                                .start(start_time)
-                            )
-                            // Add image and a link to the github repo
-                            .assets(
-                                activity::Assets::new()
-                                    .large_image(img.as_str())
-                                    .large_text("https://github.com/Radiicall/steam-presence-on-discord") 
-                            )
-                    ).expect("Failed to set activity");    
-                } else {
-                    drpc.set_activity(
-                        activity::Activity::new()
-                            .timestamps(
-                                activity::Timestamps::new()
-                                .start(start_time)
-                            )
-                            .assets(
-                                activity::Assets::new()
-                                .large_image(img.as_str())
-                                .large_text("https://github.com/Radiicall/steam-presence-on-discord")
-                            )
-                    ).expect("Failed to set activity");
-                }
-            } else {
-                if appid == rpc_client_id {
-                    drpc.set_activity(
-                        activity::Activity::new()
-                        // Set the "state" or message
-                        .state(&state_message)
-                        // Add a timestamp
-                        .timestamps(activity::Timestamps::new()
-                            .start(start_time)
-                        )
-                        .assets(
-                            activity::Assets::new()
-                            .large_image("https://github.com/Radiicall/steam-presence-rust/raw/main/hi.png")
-                            .large_text("https://github.com/Radiicall/steam-presence-on-discord")
-                        )
-                    ).expect("Failed to set activity");
-                } else {
-                    drpc.set_activity(activity::Activity::new().timestamps(activity::Timestamps::new().start(start_time))).expect("Failed to set activity");
-                }
-            }
+            drpc.set_activity(
+                setactivity(&appid, &rpc_client_id, &state_message, &img, start_time)
+            ).expect("Failed to set activity");
         } else if connected == true {
             // Disconnect from the client
             drpc.close().expect("Failed to close Discord RPC client");
@@ -163,6 +115,43 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Sleep for 18 seconds
     std::thread::sleep(std::time::Duration::from_secs(2));
     }
+}
+
+fn setactivity<'a>(appid: &String, rpc_client_id: &String, state_message: &'a String, img: &'a String, start_time: i64) -> activity::Activity<'a> {
+    let payload = activity::Activity::new()
+        // Add a timestamp
+        .timestamps(activity::Timestamps::new()
+            .start(start_time)
+        );
+
+    match appid == rpc_client_id {
+    true => {
+        if !img.is_empty() {
+            // Set the "state" or message
+            payload.state(state_message).assets(
+                activity::Assets::new()
+                    .large_image(img)
+                    .large_text("https://github.com/Radiicall/steam-presence-on-discord") 
+            )
+        } else {
+            payload.state(state_message).assets(activity::Assets::new()
+                .large_image("https://github.com/Radiicall/steam-presence-rust/raw/main/hi.png")
+                .large_text("https://github.com/Radiicall/steam-presence-on-discord")
+            )
+        }
+    }, false => {
+        if !img.is_empty() {
+            payload.assets(activity::Assets::new()
+                    .large_image(img)
+                    .large_text("https://github.com/Radiicall/steam-presence-on-discord") 
+            )
+        } else {
+            payload.assets(activity::Assets::new()
+                .large_image("https://github.com/Radiicall/steam-presence-rust/raw/main/hi.png")
+                .large_text("https://github.com/Radiicall/steam-presence-on-discord")
+            )
+        }
+    }}
 }
 
 async fn get_presence(process: &String, api_key: &String, steam_id: &String, retrycount: u64) -> Result<String, reqwest::Error> {
