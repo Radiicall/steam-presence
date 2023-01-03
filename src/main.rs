@@ -1,7 +1,6 @@
 extern crate serde_json;
 use serde_json::Value;
 use reqwest::{Response};
-use dotenv;
 use steamgriddb_api::{QueryType::Icon};
 use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
 use std::io::{Write, BufReader, BufRead};
@@ -20,14 +19,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let griddb_key = dotenv::var("STEAM_GRID_API_KEY").unwrap_or_else(|_| "".to_string());
     let process = dotenv::var("OTHER_GAMES").unwrap_or_else(|_| "".to_string());
     println!("//////////////////////////////////////////////////////////////////\nSteam Presence on Discord\nhttps://github.com/Radiicall/steam-presence-on-discord");
-    if rpc_client_id == "" || api_key == "" || steam_id == "" {
+    if rpc_client_id.is_empty() || api_key.is_empty() || steam_id.is_empty() {
         // Run setup
         setup_env();
         std::process::exit(0);
     }
 
     // Steam ID(s)
-    println!("//////////////////////////////////////////////////////////////////\nSteam ID(s):\n{}", steam_id.replace(",", "\n"));
+    println!("//////////////////////////////////////////////////////////////////\nSteam ID(s):\n{}", steam_id.replace(',', "\n"));
 
     // Create variables early
     let mut connected: bool = false;
@@ -45,9 +44,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         };
         let state_message = message[1..message.len() - 1].to_string();
         if state_message != "ul" {
-            if connected != true {
+            if !connected {
                 // Grab image from griddb if it is enabled
-                if griddb_key != "".to_string() && state_message != "ul" {
+                if griddb_key != *"" && state_message != "ul" {
                     // Get image from griddb
                     img = steamgriddb(&griddb_key, &state_message).await.unwrap();
                 }
@@ -59,13 +58,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         "".to_string()
                     },
                 };
-                if icons != "" && state_message != "ul" {
+                if !icons.is_empty() && state_message != "ul" {
                     // Find icon in icons
-                    let icon = icons.split("\n").find(|icon| icon.contains(&state_message)).unwrap_or_else(|| "");
+                    let icon = icons.split('\n').find(|icon| icon.contains(&state_message)).unwrap_or("");
                     // Check if icon is empty
-                    if icon != "" {
+                    if !icon.is_empty() {
                         // Set img to icon
-                        img = icon.split("=").nth(1).unwrap().to_string();
+                        img = icon.split('=').nth(1).unwrap().to_string();
                     }
                 }
                 let idbrok = get_discord_app(&state_message, rpc_client_id.to_owned()).await.unwrap();
@@ -105,7 +104,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             drpc.set_activity(
                 setactivity(&appid, &rpc_client_id, &state_message, &img, start_time)
             ).expect("Failed to set activity");
-        } else if connected == true {
+        } else if connected {
             // Disconnect from the client
             drpc.close().expect("Failed to close Discord RPC client");
             // Set connected to false so that we dont try to disconnect again
@@ -117,7 +116,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-fn setactivity<'a>(appid: &String, rpc_client_id: &String, state_message: &'a String, img: &'a String, start_time: i64) -> activity::Activity<'a> {
+fn setactivity<'a>(appid: &String, rpc_client_id: &String, state_message: &'a str, img: &'a String, start_time: i64) -> activity::Activity<'a> {
     let payload = activity::Activity::new()
         // Add a timestamp
         .timestamps(activity::Timestamps::new()
@@ -156,7 +155,7 @@ fn setactivity<'a>(appid: &String, rpc_client_id: &String, state_message: &'a St
 
 async fn get_presence(process: &String, api_key: &String, steam_id: &String, retrycount: u64) -> Result<String, reqwest::Error> {
     let game_title = processes_by_name(process.to_owned());
-    if game_title != "".to_string() {
+    if game_title != *"" {
         return Ok(game_title)
     }
     // Convert to json
@@ -206,11 +205,10 @@ async fn get_presence(process: &String, api_key: &String, steam_id: &String, ret
 fn processes_by_name(processes: String) -> String {
     let s = System::new_all();
     let mut process = "".to_string();
-    let proc = processes.split(",");
+    let proc = processes.split(',');
     for i in proc {
-        for _ in s.processes_by_exact_name(i) {
+        if s.processes_by_exact_name(i).next().is_some() {
             process = i.to_string();
-            break
         }
     }
     let mut name = match read_processes() {
@@ -220,19 +218,17 @@ fn processes_by_name(processes: String) -> String {
             "".to_string()
         },
     };
-    if process != "".to_string() {
-        if name.contains(&process) {
-            name = name.split("\n").find(|p| p.contains(&process)).unwrap_or_else(|| "").to_string();
-            if name != "".to_string() {
-                process = name.split("=").nth(1).unwrap().to_string();
-            }
+    if process != *"" && name.contains(&process) {
+        name = name.split('\n').find(|p| p.contains(&process)).unwrap_or("").to_string();
+        if name != *"" {
+            process = name.split('=').nth(1).unwrap().to_string();
         }
     }
     process =  "'".to_string() + process.as_str() + "'";
-    if process != "''".to_string() {
-        return process
+    if process != *"''" {
+        process
     } else {
-        return "".to_string()
+        "".to_string()
     }
 }
 
@@ -252,7 +248,7 @@ async fn get_discord_app(query: &str, rpc_client_id: String) -> Result<String, r
     let mut id: String = format!("+{}+", rpc_client_id);
     for i in 0..json.len() {
         let mut response: Vec<&str> = Vec::new();
-        response.push(&json[i].get("name").unwrap().as_str().unwrap());
+        response.push(json[i].get("name").unwrap().as_str().unwrap());
         if response.contains(&query) {
             id = json[i].get("id").unwrap().to_string();
             break
@@ -267,7 +263,7 @@ async fn steamgriddb(griddb_key: &String, query: &str) -> Result<String, Box<dyn
     // Search for the currently open game
     let games = client.search(query).await?;
     // Get the first game
-    let first_game = games.iter().next();
+    let first_game = games.first();
     // Create image variable early so rust doesnt freak out
     let mut image: String = "".to_string();
     // If there is a first game
@@ -275,7 +271,7 @@ async fn steamgriddb(griddb_key: &String, query: &str) -> Result<String, Box<dyn
         // Get the images of the game
         let images = client.get_images_for_id(first_game.id, &Icon(None)).await?;
         // Get the first image
-        if images.len() > 0 {
+        if !images.is_empty() {
             image = images[0].url.to_string();
             if !image.ends_with(".png") {
                 let resolutions = vec![
@@ -287,7 +283,7 @@ async fn steamgriddb(griddb_key: &String, query: &str) -> Result<String, Box<dyn
                     16
                 ];
                 for res in resolutions {
-                    let url = format!("{}/32/{}x{}.png", image[0..image.len() - 4].to_string(), res, res);
+                    let url = format!("{}/32/{}x{}.png", &image[0..image.len() - 4], res, res);
 
                     let r: Response = reqwest::get(url.as_str()).await?;
 
@@ -382,11 +378,11 @@ minecraft.exe=Minecraft
 fn read_icons() -> Result<String, std::io::Error>{
     let icons = std::env::current_exe()?.parent().unwrap().join("icons.txt");
     // Open file and read to string
-    return Ok(std::fs::read_to_string(icons)?);
+    std::fs::read_to_string(icons)
 }
 
 fn read_processes() -> Result<String, std::io::Error>{
     let processes = std::env::current_exe()?.parent().unwrap().join("games.txt");
     // Open file and read to string
-    return Ok(std::fs::read_to_string(processes)?);
+    std::fs::read_to_string(processes)
 }
