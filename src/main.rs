@@ -6,12 +6,11 @@ use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
 use std::io::{Write, BufReader, BufRead};
 use sysinfo::{System, SystemExt};
 
-const ENV: &str = "./.env";
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Load environment variables
-    dotenv::dotenv().ok();
+    println!("{:?}", std::env::current_exe()?.parent().unwrap());
+    dotenv::from_path(std::env::current_exe()?.parent().unwrap().join(".env")).ok();
     let rpc_client_id = dotenv::var("DISCORD_APPLICATION_ID").unwrap_or_else(|_| "".to_string());
     let api_key = dotenv::var("STEAM_API_KEY").unwrap_or_else(|_| "".to_string());
     let steam_id = dotenv::var("STEAM_USER_ID").unwrap_or_else(|_| "".to_string());
@@ -357,12 +356,14 @@ minecraft.exe=Minecraft
  }
 
  fn write(input: &str) -> Result<(), std::io::Error> {
+    let env_pathbuf = std::env::current_exe()?.parent().unwrap().join(".env");
+    let env = env_pathbuf.to_str().unwrap();
     // Try to create the file
-    let mut output = std::fs::File::create(ENV)?;
+    let mut output = std::fs::File::create(env)?;
     // Try to write input to file
     write!(output, "{}", input)?;
     // Try to set input to file
-    let input = std::fs::File::open(ENV)?;
+    let input = std::fs::File::open(env)?;
     // Read input to string
     let buffered = BufReader::new(input);
 
